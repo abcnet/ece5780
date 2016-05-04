@@ -40,11 +40,14 @@ img1 = path1 + '/' + 'IM-14207-0001.dcm'
 seed_inner1 = (91,120)
 seed_outer1 = (91,134)
 
-class LabelMatrix:
-	def __init__(self, h, w):
+class Label:
+	def __init__(self, img, seed):
+		self.img = img
+		w, h = img.shape
 		self.nrows = h
 		self.ncols = w
 		self.m = [-1] * h * w
+		self.seed = seed
 	# def setLabel(self, y, x, v):
 	# 	self.m[y][x] = v + 1
 	# def getLabel(self, y, x):
@@ -54,15 +57,25 @@ class LabelMatrix:
 	def i2yx(self, i):
 		return i / self.ncols, i % self.ncols
 	def find(self, i):
+		# print 'find', i, self.m[i]
+		# print 'self.m[0] = ', self.m[0]
+		# print 'self.m[', i, '] = ', self.m[i]
 		if self.m[i] < 0:
+			# print 'After find, self.m[', i, '] < 0, self.m[0] = ', self.m[0]
 			return i
 		else:
 			tmp = self.find(self.m[i])
 			self.m[i] = tmp
+			# print 'After find, self.m[', i, '] >= 0, self.m[0] = ', self.m[0]
 			return tmp
 	def union(self, i1, i2):
+		# print 'union', i1, i2
+		# print 'self.m[0] = ', self.m[0]
 		root1 = self.find(i1)
 		root2 = self.find(i2)
+		# print 'union', root1, root2, 'instead'
+		if root1 == root2:
+			return
 		v_root1 = self.m[root1]
 		v_root2 = self.m[root2]
 		if v_root2 < v_root1:
@@ -71,6 +84,24 @@ class LabelMatrix:
 		else:
 			self.m[root1] += v_root2
 			self.m[root2] = root1
+		# print 'After union ', i1, i2, ', self.m[0] = ', self.m[0]
+	def getImg(self):
+		# print 'size of img ', img.shape
+		for y in range(self.nrows):
+			for x in range(self.ncols):
+				if x > 0 and self.img[x][y] == self.img[x-1][y]:
+					self.union(self.yx2i(y, x - 1), self.yx2i(y, x))
+				if y > 0 and self.img[x][y] == self.img[x][y-1]:
+					self.union(self.yx2i(y - 1, x), self.yx2i(y, x))
+		newimg = np.zeros(img.shape, dtype=np.uint8)
+		# print 'size of newimg ', newimg.shape
+		seedLabel = self.find(self.yx2i(self.seed[1], self.seed[0]))
+		for y in range(self.nrows):
+			for x in range(self.ncols):
+				if self.find(self.yx2i(y, x)) == seedLabel:
+					# print 'accessing ', x,y
+					newimg[x][y] = 255
+		return newimg
 
 
 
@@ -107,15 +138,15 @@ if __name__ == "__main__":
         for y in range(h):
             # print(x,y,img[x][y], threshold,  0 if img[x][y] < threshold else 65535)
             img[x][y] = 0 if img[x][y] < threshold else 65535
+    labelMatrix = Label(img, seed_inner1)
+    region = labelMatrix.getImg()
 
 
-    # labels = 
-
-
-
+    imsave('region.png', region)
 
     imsave('16bit.png', img)   
     img8 = imread('16bit.png')
+    region8 = imread('region.png')
 
 
     # plt.imshow(img)
@@ -129,6 +160,7 @@ if __name__ == "__main__":
     # img8 = np.array(img, dtype=np.uint8)
 
     backtorgb = cv2.cvtColor(img8,cv2.COLOR_GRAY2RGB)
+    regiontorgb = cv2.cvtColor(region8,cv2.COLOR_GRAY2RGB)
 
     # for x in range(w):
     #     for y in range(h):
@@ -137,12 +169,15 @@ if __name__ == "__main__":
     cv2.circle(backtorgb,seed_inner1, 2, (255,255,0), -1)
     cv2.circle(backtorgb,seed_outer1, 1, (0,255,0), -1)
 
+    cv2.circle(regiontorgb,seed_inner1, 2, (255,255,0), -1)
+    cv2.circle(regiontorgb,seed_outer1, 1, (0,255,0), -1)
+
     # cmap = plt.get_cmap('jet')
 
     # rgba_img = cmap(img)
     # rgb_img = np.delete(rgba_img, 3, 2)
-    plt.imshow(backtorgb)
+    plt.imshow(regiontorgb)
     plt.show()
 
-    imsave('test.png', backtorgb)
+    imsave('region2.png', regiontorgb)
 
