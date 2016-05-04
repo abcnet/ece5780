@@ -38,7 +38,7 @@ patients = [28, 30, 51, 100, 151, 177, 195, 198, 239, 244, 248, 254, 266, 272, 2
 path1 = '/Users/zr/Downloads/!ECE5780/!Kaggle/!Data/train/28/study/sax_5'
 img1 = path1 + '/' + 'IM-14207-0001.dcm'
 seed_inner1 = (91,120)
-seed_inner2 = (91,134)
+seed_outer1 = (91,134)
 
 if __name__ == "__main__":
     ds = dicom.read_file(img1)
@@ -46,8 +46,27 @@ if __name__ == "__main__":
     # pylab.show()
 
     img = np.array(ds.pixel_array)
-    imsave('raw.png', img)
-    img8 = imread('raw.png')
+
+    # test thresholding
+    
+    inner = 0
+    for x in (-1,0,1):
+        for y in (-1,0,1):
+     	   inner += img[seed_inner1[0]+x][seed_inner1[1]+y]
+    inner /= 9
+
+    threshold = (img[seed_outer1] + inner) * 4
+    print(img[seed_outer1])
+    print(inner)
+    print(threshold)
+    w,h = img.shape
+    for x in range(w):
+        for y in range(h):
+            # print(x,y,img[x][y], threshold,  0 if img[x][y] < threshold else 65535)
+            img[x][y] = 0 if img[x][y] < threshold else 65535
+
+    imsave('16bit.png', img)   
+    img8 = imread('16bit.png')
 
 
     # plt.imshow(img)
@@ -62,8 +81,12 @@ if __name__ == "__main__":
 
     backtorgb = cv2.cvtColor(img8,cv2.COLOR_GRAY2RGB)
 
+    # for x in range(w):
+    #     for y in range(h):
+    #         print(x,y,img[x][y])
+
     cv2.circle(backtorgb,seed_inner1, 2, (255,255,0), -1)
-    cv2.circle(backtorgb,seed_inner2, 1, (0,255,0), -1)
+    cv2.circle(backtorgb,seed_outer1, 1, (0,255,0), -1)
 
     # cmap = plt.get_cmap('jet')
 
