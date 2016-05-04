@@ -93,15 +93,17 @@ class Label:
 					self.union(self.yx2i(y, x - 1), self.yx2i(y, x))
 				if y > 0 and self.img[x][y] == self.img[x][y-1]:
 					self.union(self.yx2i(y - 1, x), self.yx2i(y, x))
-		newimg = np.zeros(img.shape, dtype=np.uint8)
+		# newimg = np.zeros(img.shape, dtype=np.uint8)
 		# print 'size of newimg ', newimg.shape
-		seedLabel = self.find(self.yx2i(self.seed[1], self.seed[0]))
+		seedLabel = self.find(self.yx2i(self.seed[0], self.seed[1]))
 		for y in range(self.nrows):
 			for x in range(self.ncols):
 				if self.find(self.yx2i(y, x)) == seedLabel:
 					# print 'accessing ', x,y
-					newimg[x][y] = 255
-		return newimg
+					self.img[x][y] = 65535
+				else:
+					self.img[x][y] = 0
+
 
 
 
@@ -138,15 +140,17 @@ if __name__ == "__main__":
         for y in range(h):
             # print(x,y,img[x][y], threshold,  0 if img[x][y] < threshold else 65535)
             img[x][y] = 0 if img[x][y] < threshold else 65535
+
+    imsave('16bitold.png', img)
     labelMatrix = Label(img, seed_inner1)
-    region = labelMatrix.getImg()
+    labelMatrix.getImg()
+    imsave('16bitnew.png', img)
 
+    # imsave('region.png', region)
 
-    imsave('region.png', region)
-
-    imsave('16bit.png', img)   
-    img8 = imread('16bit.png')
-    region8 = imread('region.png')
+     
+    img8 = imread('16bitold.png')
+    region8 = imread('16bitnew.png')
 
 
     # plt.imshow(img)
@@ -169,8 +173,8 @@ if __name__ == "__main__":
     cv2.circle(backtorgb,seed_inner1, 2, (255,255,0), -1)
     cv2.circle(backtorgb,seed_outer1, 1, (0,255,0), -1)
 
-    cv2.circle(regiontorgb,seed_inner1, 2, (255,255,0), -1)
-    cv2.circle(regiontorgb,seed_outer1, 1, (0,255,0), -1)
+    # cv2.circle(regiontorgb,seed_inner1, 2, (255,255,0), -1)
+    # cv2.circle(regiontorgb,seed_outer1, 1, (0,255,0), -1)
 
     # cmap = plt.get_cmap('jet')
 
@@ -179,5 +183,5 @@ if __name__ == "__main__":
     plt.imshow(regiontorgb)
     plt.show()
 
-    imsave('region2.png', regiontorgb)
+    imsave('8bitnew.png', regiontorgb)
 
