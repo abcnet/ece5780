@@ -44,15 +44,37 @@ class LabelMatrix:
 	def __init__(self, h, w):
 		self.nrows = h
 		self.ncols = w
-		self.m = np.zeros((h, w), dtype=np.uint16)
-	def setLabel(self, x, y, v):
-		self.m[y][x] = v + 1
-	def getLabel(self, x, y):
-		return self.m[y][x] - 1
+		self.m = [-1] * h * w
+	# def setLabel(self, y, x, v):
+	# 	self.m[y][x] = v + 1
+	# def getLabel(self, y, x):
+	# 	return self.m[y][x] - 1
 	def yx2i(self, y, x):
 		return y * self.ncols + x
 	def i2yx(self, i):
 		return i / self.ncols, i % self.ncols
+	def find(self, i):
+		if self.m[i] < 0:
+			return i
+		else:
+			tmp = self.find(self.m[i])
+			self.m[i] = tmp
+			return tmp
+	def union(self, i1, i2):
+		root1 = self.find(i1)
+		root2 = self.find(i2)
+		v_root1 = self.m[root1]
+		v_root2 = self.m[root2]
+		if v_root2 < v_root1:
+			self.m[root2] += v_root1
+			self.m[root1] = root2
+		else:
+			self.m[root1] += v_root2
+			self.m[root2] = root1
+
+
+
+
 
 
 if __name__ == "__main__":
