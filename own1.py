@@ -40,6 +40,21 @@ img1 = path1 + '/' + 'IM-14207-0001.dcm'
 seed_inner1 = (91,120)
 seed_outer1 = (91,134)
 
+class LabelMatrix:
+	def __init__(self, h, w):
+		self.nrows = h
+		self.ncols = w
+		self.m = np.zeros((h, w), dtype=np.uint16)
+	def setLabel(self, x, y, v):
+		self.m[y][x] = v + 1
+	def getLabel(self, x, y):
+		return self.m[y][x] - 1
+	def yx2i(self, y, x):
+		return y * self.ncols + x
+	def i2yx(self, i):
+		return i / self.ncols, i % self.ncols
+
+
 if __name__ == "__main__":
     ds = dicom.read_file(img1)
     # pylab.imshow(ds.pixel_array, cmap=pylab.cm.bone)
@@ -49,6 +64,12 @@ if __name__ == "__main__":
 
     # test thresholding
     
+    # outer = img[seed_outer1]
+    # inner = img[seed_inner1]
+    # old_threshold = (img[seed_outer1] + img[seed_inner1]) / 2
+    # print outer, inner, old_threshold, outer < old_threshold, inner > old_threshold, img[seed_outer1] < old_threshold, img[seed_inner1] > old_threshold
+
+
     inner = 0
     for x in (-1,0,1):
         for y in (-1,0,1):
@@ -64,6 +85,12 @@ if __name__ == "__main__":
         for y in range(h):
             # print(x,y,img[x][y], threshold,  0 if img[x][y] < threshold else 65535)
             img[x][y] = 0 if img[x][y] < threshold else 65535
+
+
+    # labels = 
+
+
+
 
     imsave('16bit.png', img)   
     img8 = imread('16bit.png')
