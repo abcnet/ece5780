@@ -93,19 +93,28 @@ class Label:
 					self.union(self.yx2i(y, x - 1), self.yx2i(y, x))
 				if y > 0 and self.img[x][y] == self.img[x][y-1]:
 					self.union(self.yx2i(y - 1, x), self.yx2i(y, x))
-		newimg = np.zeros(img.shape, dtype=np.uint8)
-		# print 'size of newimg ', newimg.shape
+		region = np.zeros(img.shape, dtype=np.uint8)
+		# print 'size of region ', region.shape
 		seedLabel = self.find(self.yx2i(self.seed[0], self.seed[1]))
 		for y in range(self.nrows):
 			for x in range(self.ncols):
 				if self.find(self.yx2i(y, x)) == seedLabel:
 					# print 'accessing ', x,y
-					newimg[x][y] = 255
+					region[x][y] = 255
 				else:
-					newimg[x][y] = 0
-		return newimg
-
-
+					region[x][y] = 0
+		return region
+	def edgeDetect(self, region):
+		w, h = region.shape
+		edge = np.zeros(region.shape, dtype=np.uint8)
+		for y in range(self.nrows):
+			for x in range(self.ncols):
+				if (x > 0 and region[x][y] != region[x-1][y]) \
+				or (x <= w-2 and region[x][y] != region[x+1][y]) \
+				or (y > 0 and region[x][y] != region[x][y-1]) \
+				or (y <= h-2 and region[x][y] != region[x][y+1]):
+					edge[x][y] = 255
+		return edge
 
 
 
@@ -143,7 +152,8 @@ if __name__ == "__main__":
 
     imsave('16bitold.png', img)
     labelMatrix = Label(img, seed_inner1)
-    newimg = labelMatrix.getImg()
+    region = labelMatrix.getImg()
+    edge = labelMatrix.edgeDetect(region)
     # imsave('16bitnew.png', img)
 
     # imsave('region.png', region)
@@ -164,7 +174,8 @@ if __name__ == "__main__":
     # img8 = np.array(img, dtype=np.uint8)
 
     backtorgb = cv2.cvtColor(img8,cv2.COLOR_GRAY2RGB)
-    regiontorgb = cv2.cvtColor(newimg,cv2.COLOR_GRAY2RGB)
+    regiontorgb = cv2.cvtColor(region,cv2.COLOR_GRAY2RGB)
+    edge2rgb =  cv2.cvtColor(edge,cv2.COLOR_GRAY2RGB)
 
     # for x in range(w):
     #     for y in range(h):
@@ -180,7 +191,7 @@ if __name__ == "__main__":
 
     # rgba_img = cmap(img)
     # rgb_img = np.delete(rgba_img, 3, 2)
-    plt.imshow(regiontorgb)
+    plt.imshow(edge2rgb)
     plt.show()
 
     imsave('8bitnew.png', regiontorgb)
