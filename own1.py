@@ -93,17 +93,17 @@ class Label:
 					self.union(self.yx2i(y, x - 1), self.yx2i(y, x))
 				if y > 0 and self.img[x][y] == self.img[x][y-1]:
 					self.union(self.yx2i(y - 1, x), self.yx2i(y, x))
-		# newimg = np.zeros(img.shape, dtype=np.uint8)
+		newimg = np.zeros(img.shape, dtype=np.uint8)
 		# print 'size of newimg ', newimg.shape
 		seedLabel = self.find(self.yx2i(self.seed[0], self.seed[1]))
 		for y in range(self.nrows):
 			for x in range(self.ncols):
 				if self.find(self.yx2i(y, x)) == seedLabel:
 					# print 'accessing ', x,y
-					self.img[x][y] = 65535
+					newimg[x][y] = 255
 				else:
-					self.img[x][y] = 0
-
+					newimg[x][y] = 0
+		return newimg
 
 
 
@@ -143,14 +143,14 @@ if __name__ == "__main__":
 
     imsave('16bitold.png', img)
     labelMatrix = Label(img, seed_inner1)
-    labelMatrix.getImg()
-    imsave('16bitnew.png', img)
+    newimg = labelMatrix.getImg()
+    # imsave('16bitnew.png', img)
 
     # imsave('region.png', region)
 
      
     img8 = imread('16bitold.png')
-    region8 = imread('16bitnew.png')
+    # region8 = imread('16bitnew.png')
 
 
     # plt.imshow(img)
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     # img8 = np.array(img, dtype=np.uint8)
 
     backtorgb = cv2.cvtColor(img8,cv2.COLOR_GRAY2RGB)
-    regiontorgb = cv2.cvtColor(region8,cv2.COLOR_GRAY2RGB)
+    regiontorgb = cv2.cvtColor(newimg,cv2.COLOR_GRAY2RGB)
 
     # for x in range(w):
     #     for y in range(h):
