@@ -103,6 +103,7 @@ class Label:
 					region[x][y] = 255
 				else:
 					region[x][y] = 0
+		self.region = region
 		return region
 	def edgeDetect(self, region):
 		w, h = region.shape
@@ -114,7 +115,26 @@ class Label:
 				or (y > 0 and region[x][y] != region[x][y-1]) \
 				or (y <= h-2 and region[x][y] != region[x][y+1]):
 					edge[x][y] = 255
+		self.edge = edge
 		return edge
+	def getPixelValue(self, img, x, y, default):
+		w, h = img.shape
+		if x < 0 or x >= w or y < 0 or y >= h:
+			return default
+		else:
+			return img[x][y]
+	def erosion(self, kernel):
+		w, h = self.region.shape
+		erosed = np.zeros(region.shape, dtype=np.uint8)
+		for y in range(self.nrows):
+			for x in range(self.ncols):
+				pass
+
+	def dilation(self, kernel):
+		pass
+	def opening(self, kernel):
+		pass
+
 
 
 
@@ -191,8 +211,8 @@ if __name__ == "__main__":
 
     # rgba_img = cmap(img)
     # rgb_img = np.delete(rgba_img, 3, 2)
-    plt.imshow(edge2rgb)
+    plt.imshow(regiontorgb)
     plt.show()
-
+    imsave('old.png', backtorgb)
     imsave('8bitnew.png', regiontorgb)
 
