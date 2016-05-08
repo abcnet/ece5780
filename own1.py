@@ -39,11 +39,13 @@ path1 = '/Users/zr/Downloads/!ECE5780/!Kaggle/!Data/train/28/study/sax_5'
 img1 = path1 + '/' + 'IM-14207-0001.dcm'
 seed_inner1 = (91,120)
 seed_outer1 = (91,134)
+# seed_inner1 = (120, 91)
+# seed_outer1 = (134, 91)
 
 class Label:
 	def __init__(self, img, seed):
 		self.img = img
-		w, h = img.shape
+		h, w = img.shape
 		self.nrows = h
 		self.ncols = w
 		self.m = [-1] * h * w
@@ -89,32 +91,33 @@ class Label:
 		# print 'size of img ', img.shape
 		for y in range(self.nrows):
 			for x in range(self.ncols):
-				if x > 0 and self.img[x][y] == self.img[x-1][y]:
+				if x > 0 and self.img[y][x] == self.img[y][x-1]:
 					self.union(self.yx2i(y, x - 1), self.yx2i(y, x))
-				if y > 0 and self.img[x][y] == self.img[x][y-1]:
+				if y > 0 and self.img[y][x] == self.img[y-1][x]:
 					self.union(self.yx2i(y - 1, x), self.yx2i(y, x))
 		region = np.zeros(img.shape, dtype=np.uint8)
 		# print 'size of region ', region.shape
-		seedLabel = self.find(self.yx2i(self.seed[0], self.seed[1]))
+		seedLabel = self.find(self.yx2i(self.seed[1], self.seed[0]))
 		for y in range(self.nrows):
 			for x in range(self.ncols):
 				if self.find(self.yx2i(y, x)) == seedLabel:
 					# print 'accessing ', x,y
-					region[x][y] = 255
+					region[y][x] = 255
 				else:
-					region[x][y] = 0
+					region[y][x] = 0
 		self.region = region
 		return region
 	def edgeDetect(self, region):
-		w, h = region.shape
+		h, w = region.shape
 		edge = np.zeros(region.shape, dtype=np.uint8)
 		for y in range(self.nrows):
 			for x in range(self.ncols):
-				if (x > 0 and region[x][y] != region[x-1][y]) \
-				or (x <= w-2 and region[x][y] != region[x+1][y]) \
-				or (y > 0 and region[x][y] != region[x][y-1]) \
-				or (y <= h-2 and region[x][y] != region[x][y+1]):
-					edge[x][y] = 255
+				# print x,y,region.shape
+				if (x > 0 and region[y][x] != region[y][x-1]) \
+				or (x <= w-2 and region[y][x] != region[y][x+1]) \
+				or (y > 0 and region[y][x] != region[y-1][x]) \
+				or (y <= h-2 and region[y][x] != region[y+1][x]):
+					edge[y][x] = 255
 		self.edge = edge
 		return edge
 	def getPixelValue(self, img, x, y, default):
@@ -122,10 +125,12 @@ class Label:
 		if x < 0 or x >= w or y < 0 or y >= h:
 			return default
 		else:
-			return img[x][y]
+			return img[y][x]
 	def erosion(self, kernel):
+		kernel = np.array(kernel)
+		kw, kh = kernel.shape
 		w, h = self.region.shape
-		erosed = np.zeros(region.shape, dtype=np.uint8)
+		erosed = np.zeros((), dtype=np.uint8)
 		for y in range(self.nrows):
 			for x in range(self.ncols):
 				pass
@@ -145,6 +150,7 @@ if __name__ == "__main__":
     # pylab.show()
 
     img = np.array(ds.pixel_array)
+    print img.shape
 
     # test thresholding
     
@@ -157,18 +163,18 @@ if __name__ == "__main__":
     inner = 0
     for x in (-1,0,1):
         for y in (-1,0,1):
-     	   inner += img[seed_inner1[0]+x][seed_inner1[1]+y]
+     	   inner += img[seed_inner1[0]+y][seed_inner1[1]+x]
     inner /= 9
 
     threshold = (img[seed_outer1] + inner) * 4
     print(img[seed_outer1])
     print(inner)
     print(threshold)
-    w,h = img.shape
+    h, w = img.shape
     for x in range(w):
         for y in range(h):
-            # print(x,y,img[x][y], threshold,  0 if img[x][y] < threshold else 65535)
-            img[x][y] = 0 if img[x][y] < threshold else 65535
+            # print(x,y,img[y][x], threshold,  0 if img[y][x] < threshold else 65535)
+            img[y][x] = 0 if img[y][x] < threshold else 65535
 
     imsave('16bitold.png', img)
     labelMatrix = Label(img, seed_inner1)
@@ -199,7 +205,7 @@ if __name__ == "__main__":
 
     # for x in range(w):
     #     for y in range(h):
-    #         print(x,y,img[x][y])
+    #         print(x,y,img[y][x])
 
     cv2.circle(backtorgb,seed_inner1, 2, (255,255,0), -1)
     cv2.circle(backtorgb,seed_outer1, 1, (0,255,0), -1)
