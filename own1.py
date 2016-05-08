@@ -166,8 +166,16 @@ class Label:
 				if yes:
 					dilated[y][x] = 255
 		return dilated
-	def opening(self, kernel):
-		pass
+	def opening(self, oldimg, kernel):
+		h, w = oldimg.shape
+		erosed = self.erosion(oldimg, kernel)
+		dilated = self.dilation(erosed, kernel)
+		dilatedExpanded = np.zeros(oldimg.shape, dtype=np.uint8)
+		kh, kw = np.array(kernel, dtype=np.uint8).shape
+		print dilated.shape
+		print h, w, kh, kw,  kh-1, h-kh+1, kw-1, w-kw+1
+		dilatedExpanded[kh-1:h-kh+1, kw-1:w-kw+1] = dilated
+		return dilatedExpanded
 
 
 
@@ -220,8 +228,9 @@ if __name__ == "__main__":
     img8 = imread('16bitold.png')
     # region8 = imread('16bitnew.png')
 
-    erosed = labelMatrix.erosion(region, [[1]*3]*3)
-    dilated = labelMatrix.dilation(erosed, [[1]*3]*3)
+    opened = labelMatrix.opening(region, [[1]*3]*3)
+    # dilated = labelMatrix.dilation(erosed, [[1]*3]*3)
+
 
     # plt.imshow(img)
     # plt.show()
@@ -236,8 +245,8 @@ if __name__ == "__main__":
     backtorgb = cv2.cvtColor(img8,cv2.COLOR_GRAY2RGB)
     regiontorgb = cv2.cvtColor(region,cv2.COLOR_GRAY2RGB)
     # edge2rgb =  cv2.cvtColor(edge,cv2.COLOR_GRAY2RGB)
-    erosed2rgb =  cv2.cvtColor(erosed,cv2.COLOR_GRAY2RGB)
-    dilated2rgb =  cv2.cvtColor(dilated,cv2.COLOR_GRAY2RGB)
+    # erosed2rgb =  cv2.cvtColor(erosed,cv2.COLOR_GRAY2RGB)
+    opened2rgb =  cv2.cvtColor(opened,cv2.COLOR_GRAY2RGB)
 
 
 
@@ -253,7 +262,7 @@ if __name__ == "__main__":
     # rgb_img = np.delete(rgba_img, 3, 2)
     plt.imshow(regiontorgb)
     plt.show()
-    plt.imshow(dilated2rgb)
+    plt.imshow(opened2rgb)
     plt.show()
     imsave('old.png', backtorgb)
     imsave('8bitnew.png', regiontorgb)
