@@ -39,8 +39,8 @@ path1 = '/Users/zr/Downloads/!ECE5780/!Kaggle/!Data/train/28/study/sax_5'
 img1 = path1 + '/' + 'IM-14207-0001.dcm'
 seed_inner1 = (91,120)
 seed_outer1 = (91,134)
-# seed_inner1 = (120, 91)
-# seed_outer1 = (134, 91)
+seed_inner1_yx = (120, 91)
+seed_outer1_yx = (134, 91)
 
 class Label:
 	def __init__(self, img, seed):
@@ -175,10 +175,10 @@ if __name__ == "__main__":
     inner = 0
     for x in (-1,0,1):
         for y in (-1,0,1):
-     	   inner += img[seed_inner1[0]+y][seed_inner1[1]+x]
+     	   inner += img[seed_inner1[1]+y][seed_inner1[0]+x]
     inner /= 9
 
-    threshold = (img[seed_outer1] + inner) * 4
+    threshold = img[seed_outer1] / 4 + inner * 3 / 4
     print(img[seed_outer1])
     print(inner)
     print(threshold)
@@ -193,6 +193,8 @@ if __name__ == "__main__":
     region = labelMatrix.getImg()
     edge = labelMatrix.edgeDetect(region)
     erosed = labelMatrix.erosion([[1]*3]*3)
+    # erosedMatrix = Label(erosed, )
+
     # imsave('16bitnew.png', img)
 
     # imsave('region.png', region)
