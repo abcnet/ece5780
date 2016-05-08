@@ -128,8 +128,8 @@ class Label:
 			return img[y][x]
 	def erosion(self, kernel):
 		kernel = np.array(kernel, dtype=np.uint8)
-		kw, kh = kernel.shape
-		w, h = self.region.shape
+		kh, kw = kernel.shape
+		h, w = self.region.shape
 		erosed = np.zeros((h-kh+1, w-kw+1), dtype=np.uint8)
 		for y in range(h-kh+1):
 			for x in range(w-kw+1):
@@ -138,6 +138,7 @@ class Label:
 					if not yes:
 						break
 					for xx in range(kw):
+						# print y,yy,x,xx,self.region.shape,h,kh,w,kw
 						if self.region[y+yy][x+xx] == 0 or kernel[yy][xx] == 0:
 							yes = False
 							break
@@ -191,6 +192,7 @@ if __name__ == "__main__":
     labelMatrix = Label(img, seed_inner1)
     region = labelMatrix.getImg()
     edge = labelMatrix.edgeDetect(region)
+    erosed = labelMatrix.erosion([[1]*3]*3)
     # imsave('16bitnew.png', img)
 
     # imsave('region.png', region)
@@ -213,7 +215,7 @@ if __name__ == "__main__":
     backtorgb = cv2.cvtColor(img8,cv2.COLOR_GRAY2RGB)
     regiontorgb = cv2.cvtColor(region,cv2.COLOR_GRAY2RGB)
     edge2rgb =  cv2.cvtColor(edge,cv2.COLOR_GRAY2RGB)
-
+    erosed2rgb =  cv2.cvtColor(erosed,cv2.COLOR_GRAY2RGB)
     # for x in range(w):
     #     for y in range(h):
     #         print(x,y,img[y][x])
@@ -229,6 +231,8 @@ if __name__ == "__main__":
     # rgba_img = cmap(img)
     # rgb_img = np.delete(rgba_img, 3, 2)
     plt.imshow(regiontorgb)
+    plt.show()
+    plt.imshow(erosed2rgb)
     plt.show()
     imsave('old.png', backtorgb)
     imsave('8bitnew.png', regiontorgb)
