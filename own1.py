@@ -229,6 +229,8 @@ if __name__ == "__main__":
     # region8 = imread('16bitnew.png')
 
     opened = labelMatrix.opening(region, [[1]*3]*3)
+    openedLabelMatrix = Label(opened, seed_inner1)
+    regionAfterOpening = openedLabelMatrix.getImg()
     # dilated = labelMatrix.dilation(erosed, [[1]*3]*3)
 
 
@@ -246,7 +248,7 @@ if __name__ == "__main__":
     regiontorgb = cv2.cvtColor(region,cv2.COLOR_GRAY2RGB)
     # edge2rgb =  cv2.cvtColor(edge,cv2.COLOR_GRAY2RGB)
     # erosed2rgb =  cv2.cvtColor(erosed,cv2.COLOR_GRAY2RGB)
-    opened2rgb =  cv2.cvtColor(opened,cv2.COLOR_GRAY2RGB)
+    regionAfterOpening2rgb =  cv2.cvtColor(regionAfterOpening,cv2.COLOR_GRAY2RGB)
 
 
 
@@ -262,7 +264,7 @@ if __name__ == "__main__":
     # rgb_img = np.delete(rgba_img, 3, 2)
     plt.imshow(regiontorgb)
     plt.show()
-    plt.imshow(opened2rgb)
+    plt.imshow(regionAfterOpening2rgb)
     plt.show()
     imsave('old.png', backtorgb)
     imsave('8bitnew.png', regiontorgb)
