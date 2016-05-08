@@ -127,13 +127,24 @@ class Label:
 		else:
 			return img[y][x]
 	def erosion(self, kernel):
-		kernel = np.array(kernel)
+		kernel = np.array(kernel, dtype=np.uint8)
 		kw, kh = kernel.shape
 		w, h = self.region.shape
-		erosed = np.zeros((), dtype=np.uint8)
-		for y in range(self.nrows):
-			for x in range(self.ncols):
-				pass
+		erosed = np.zeros((h-kh+1, w-kw+1), dtype=np.uint8)
+		for y in range(h-kh+1):
+			for x in range(w-kw+1):
+				yes = True
+				for yy in range(kh):
+					if not yes:
+						break
+					for xx in range(kw):
+						if self.region[y+yy][x+xx] == 0 or kernel[yy][xx] == 0:
+							yes = False
+							break
+				if yes:
+					erosed[y][x] = 255
+		return erosed
+
 
 	def dilation(self, kernel):
 		pass
