@@ -160,7 +160,7 @@ class Label:
 						break
 					for xx in range(kw):
 						# print y,yy,x,xx,oldimg.shape,h,kh,w,kw
-						if oldimg[y+yy][x+xx] > 0 or kernel[yy][xx] > 0:
+						if oldimg[y+yy][x+xx] > 0 and kernel[yy][xx] > 0:
 							yes = True
 							break
 				if yes:
@@ -253,7 +253,7 @@ if __name__ == "__main__":
     # rgb_img = np.delete(rgba_img, 3, 2)
     plt.imshow(regiontorgb)
     plt.show()
-    plt.imshow(erosed2rgb)
+    plt.imshow(dilated2rgb)
     plt.show()
     imsave('old.png', backtorgb)
     imsave('8bitnew.png', regiontorgb)
