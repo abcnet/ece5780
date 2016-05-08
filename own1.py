@@ -126,10 +126,10 @@ class Label:
 			return default
 		else:
 			return img[y][x]
-	def erosion(self, kernel):
+	def erosion(self, oldimg, kernel):
 		kernel = np.array(kernel, dtype=np.uint8)
 		kh, kw = kernel.shape
-		h, w = self.region.shape
+		h, w = oldimg.shape
 		erosed = np.zeros((h-kh+1, w-kw+1), dtype=np.uint8)
 		for y in range(h-kh+1):
 			for x in range(w-kw+1):
@@ -138,8 +138,8 @@ class Label:
 					if not yes:
 						break
 					for xx in range(kw):
-						# print y,yy,x,xx,self.region.shape,h,kh,w,kw
-						if self.region[y+yy][x+xx] == 0 or kernel[yy][xx] == 0:
+						# print y,yy,x,xx,oldimg.shape,h,kh,w,kw
+						if oldimg[y+yy][x+xx] == 0 or kernel[yy][xx] == 0:
 							yes = False
 							break
 				if yes:
@@ -147,8 +147,25 @@ class Label:
 		return erosed
 
 
-	def dilation(self, kernel):
-		pass
+	def dilation(self, oldimg, kernel):
+		kernel = np.array(kernel, dtype=np.uint8)
+		kh, kw = kernel.shape
+		h, w = oldimg.shape
+		dilated = np.zeros((h-kh+1, w-kw+1), dtype=np.uint8)
+		for y in range(h-kh+1):
+			for x in range(w-kw+1):
+				yes = False
+				for yy in range(kh):
+					if yes:
+						break
+					for xx in range(kw):
+						# print y,yy,x,xx,oldimg.shape,h,kh,w,kw
+						if oldimg[y+yy][x+xx] > 0 or kernel[yy][xx] > 0:
+							yes = True
+							break
+				if yes:
+					dilated[y][x] = 255
+		return dilated
 	def opening(self, kernel):
 		pass
 
@@ -179,7 +196,7 @@ if __name__ == "__main__":
     inner /= 9
 
     threshold = img[seed_outer1] / 4 + inner * 3 / 4
-    print(img[seed_outer1])
+    print(img[seed_outer1_yx])
     print(inner)
     print(threshold)
     h, w = img.shape
@@ -191,8 +208,8 @@ if __name__ == "__main__":
     imsave('16bitold.png', img)
     labelMatrix = Label(img, seed_inner1)
     region = labelMatrix.getImg()
-    edge = labelMatrix.edgeDetect(region)
-    erosed = labelMatrix.erosion([[1]*3]*3)
+    # edge = labelMatrix.edgeDetect(region)
+    
     # erosedMatrix = Label(erosed, )
 
     # imsave('16bitnew.png', img)
@@ -203,6 +220,8 @@ if __name__ == "__main__":
     img8 = imread('16bitold.png')
     # region8 = imread('16bitnew.png')
 
+    erosed = labelMatrix.erosion(region, [[1]*3]*3)
+    dilated = labelMatrix.dilation(erosed, [[1]*3]*3)
 
     # plt.imshow(img)
     # plt.show()
@@ -216,11 +235,11 @@ if __name__ == "__main__":
 
     backtorgb = cv2.cvtColor(img8,cv2.COLOR_GRAY2RGB)
     regiontorgb = cv2.cvtColor(region,cv2.COLOR_GRAY2RGB)
-    edge2rgb =  cv2.cvtColor(edge,cv2.COLOR_GRAY2RGB)
+    # edge2rgb =  cv2.cvtColor(edge,cv2.COLOR_GRAY2RGB)
     erosed2rgb =  cv2.cvtColor(erosed,cv2.COLOR_GRAY2RGB)
-    # for x in range(w):
-    #     for y in range(h):
-    #         print(x,y,img[y][x])
+    dilated2rgb =  cv2.cvtColor(dilated,cv2.COLOR_GRAY2RGB)
+
+
 
     cv2.circle(backtorgb,seed_inner1, 2, (255,255,0), -1)
     cv2.circle(backtorgb,seed_outer1, 1, (0,255,0), -1)
