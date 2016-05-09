@@ -36,11 +36,21 @@ patients = [28, 30, 51, 100, 151, 177, 195, 198, 239, 244, 248, 254, 266, 272, 2
 
 
 path1 = '/Users/zr/Downloads/!ECE5780/!Kaggle/!Data/train/28/study/sax_5'
+
 img1 = path1 + '/' + 'IM-14207-0001.dcm'
 seed_inner1 = (91,120)
 seed_outer1 = (91,134)
-seed_inner1_yx = (120, 91)
-seed_outer1_yx = (134, 91)
+seed_inner_yx = (120, 91)
+seed_outer_yx = (134, 91)
+
+img2 = '/Users/zr/Downloads/!ECE5780/!Kaggle/!Data/train/177/study/sax_13/IM-11552-0001.dcm'
+seed_inner2 = (132, 132)
+seed_outer2 = (130, 152)
+
+img = img1
+seed_inner = seed_inner1
+seed_outer = seed_outer1
+
 
 class Label:
 	def __init__(self, img, seed):
@@ -199,31 +209,42 @@ def medianFilter(oldimg, kernelsize):
 
 
 if __name__ == "__main__":
-    ds = dicom.read_file(img1)
+    ds = dicom.read_file(img)
     # pylab.imshow(ds.pixel_array, cmap=pylab.cm.bone)
     # pylab.show()
 
     img = np.array(ds.pixel_array)
+
     print img.shape
+
+    # plt.imshow(img)
+    # plt.show()
+
     if TURN_ON_MEDIAN_FILTER:
     	img = medianFilter(img, 2)
 
     # test thresholding
     
-    # outer = img[seed_outer1]
-    # inner = img[seed_inner1]
-    # old_threshold = (img[seed_outer1] + img[seed_inner1]) / 2
-    # print outer, inner, old_threshold, outer < old_threshold, inner > old_threshold, img[seed_outer1] < old_threshold, img[seed_inner1] > old_threshold
+    # outer = img[seed_outer]
+    # inner = img[seed_inner]
+    # old_threshold = (img[seed_outer] + img[seed_inner]) / 2
+    # print outer, inner, old_threshold, outer < old_threshold, inner > old_threshold, img[seed_outer] < old_threshold, img[seed_inner] > old_threshold
 
 
     inner = 0
     for x in (-1,0,1):
         for y in (-1,0,1):
-     	   inner += img[seed_inner1[1]+y][seed_inner1[0]+x]
+           inner += img[seed_inner[1]+y][seed_inner[0]+x]
     inner /= 9
 
-    threshold = img[seed_outer1] / 4 + inner * 3 / 4
-    print(img[seed_outer1_yx])
+    outer = 0
+    for x in (-1,0,1):
+        for y in (-1,0,1):
+           outer += img[seed_outer[1]+y][seed_outer[0]+x]
+    outer /= 9
+
+    threshold = (outer*3 + inner) / 4
+    print(outer)
     print(inner)
     print(threshold)
     h, w = img.shape
@@ -233,7 +254,7 @@ if __name__ == "__main__":
             img[y][x] = 0 if img[y][x] < threshold else 65535
 
     imsave('16bitold.png', img)
-    labelMatrix = Label(img, seed_inner1)
+    labelMatrix = Label(img, seed_inner)
     region = labelMatrix.getImg()
     # edge = labelMatrix.edgeDetect(region)
   
@@ -243,7 +264,7 @@ if __name__ == "__main__":
     # region8 = imread('16bitnew.png')
 
     opened = labelMatrix.opening(region, [[1]*3]*3)
-    openedLabelMatrix = Label(opened, seed_inner1)
+    openedLabelMatrix = Label(opened, seed_inner)
     regionAfterOpening = openedLabelMatrix.getImg()
 
 
@@ -253,12 +274,9 @@ if __name__ == "__main__":
     # erosed2rgb =  cv2.cvtColor(erosed,cv2.COLOR_GRAY2RGB)
     regionAfterOpening2rgb =  cv2.cvtColor(regionAfterOpening,cv2.COLOR_GRAY2RGB)
 
-    cv2.circle(backtorgb,seed_inner1, 2, (255,255,0), -1)
-    cv2.circle(backtorgb,seed_outer1, 1, (0,255,0), -1)
+    cv2.circle(backtorgb,seed_inner, 2, (255,255,0), -1)
+    cv2.circle(backtorgb,seed_outer, 1, (0,255,0), -1)
 
-
-    # plt.imshow(regiontorgb)
-    # plt.show()
     plt.imshow(regionAfterOpening2rgb)
     plt.show()
     imsave('old.png', backtorgb)
