@@ -212,6 +212,7 @@ stats = open('stats.csv', 'w')
 header = 'Index,PatientNo,SaxSlice,TimeFrame,IsED,IsES,SegmentationSize,TP,TN,FP,FN'
 print header
 stats.write(header)
+os.system('mkdir output')
 for i in range(done):
 	patient = patients[i]
 	print 'Patient', patient
@@ -219,11 +220,13 @@ for i in range(done):
 	cmd = "ls -d " + path + 'sax_*'
 	saxList[i] = map(lambda x: int(x[x.find('_')+1:]), subprocess.check_output(cmd, shell=True).split())
 	saxList[i].sort()
+	os.system('mkdir output/' + str(patient))
 	# print saxList[i]
 	for sax in saxList[i]:
 		saxPath = path + 'sax_' + str(sax)
 		cmd = 'ls "' + saxPath + '"'
 		imgs = subprocess.check_output(cmd, shell=True).split()
+		os.system('mkdir output/' + str(patient) + '/sax-' + str(sax))
 		# print imgs
 		for imgName in imgs:
 			imgPath = saxPath + '/' + imgName
@@ -276,8 +279,10 @@ for i in range(done):
 						# print timeFrame, imgPath, segmentationPath
 						ds = dicom.read_file(imgPath)
 						dimg = np.array(ds.pixel_array)
-						# dimgtorgb = cv2.cvtColor(np.array(dimg, dtype=np.uint8),cv2.COLOR_GRAY2RGB)
-						# plt.imshow(dimgtorgb)
+						imsave('output/' + str(patient) + '/sax-' + str(sax) + '/' + str(do) + '-raw.png', dimg)
+						dimg8 = imread('output/' + str(patient) + '/sax-' + str(sax) + '/' + str(do) + '-raw.png')
+						dimg8torgb = cv2.cvtColor(np.array(dimg8, dtype=np.uint8),cv2.COLOR_GRAY2RGB)
+						# plt.imshow(dimg8torgb)
 						# plt.show()
 						if TURN_ON_MEDIAN_FILTER:
 							dimg = medianFilter(dimg, 2)
@@ -289,15 +294,17 @@ for i in range(done):
 						inner /= 9
 						threshold = inner * 2 / 3
 						h, w = dimg.shape
+						target = np.zeros(dimg.shape, dtype=np.uint8)
 						for x in range(w):
 							for y in range(h):
 								# print(x,y,dimg[y][x], threshold,  0 if dimg[y][x] < threshold else 65535)
-								dimg[y][x] = 0 if dimg[y][x] < threshold else 65535
-						labelMatrix = Label(dimg, (x_avg, y_avg))
+								target[y][x] = 0 if dimg[y][x] < threshold else 255
+						labelMatrix = Label(target, (x_avg, y_avg))
 						region = labelMatrix.getImg()
 						opened = labelMatrix.opening(region, ballKernel(6))
 						openedLabelMatrix = Label(opened, (x_avg, y_avg))
 						regionAfterOpening = openedLabelMatrix.getImg()
+
 						
 						# regionAfterOpening2rgb =  cv2.cvtColor(regionAfterOpening,cv2.COLOR_GRAY2RGB)
 						# plt.imshow(regionAfterOpening2rgb)
@@ -308,13 +315,18 @@ for i in range(done):
 								if regionAfterOpening[y][x] > 0:
 									if segmentation[y][x] > 0:
 										TP += 1
+										# print 'asdf', dimg8torgb[y][x], type(dimg8torgb[y][x])
+										dimg8torgb[y][x] = 255, 0, 0
 									else:
 										FP += 1
+										dimg8torgb[y][x] = 0, 0, 255
 								else:
 									if segmentation[y][x] > 0:
 										FN += 1
+										dimg8torgb[y][x] = 0, 255, 0
 									else:
 										TN += 1
 						statsString = ','.join(map(str,[i,patient,sax,do,do==1,do>1,segmentSize,TP,TN,FP,FN]))
 						print statsString
 						stats.write(statsString)
+						imsave('output/' + str(patient) + '/sax-' + str(sax) + '/' + str(do) + '-stats.png', dimg8torgb)
