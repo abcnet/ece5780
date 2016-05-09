@@ -52,6 +52,13 @@ seed_inner = seed_inner1
 seed_outer = seed_outer1
 
 
+def ballKernel(size):
+	def frac(i, size):
+		return (i + .5) / size
+	def isInsideCircle(size, x, y):
+		return 1 if (frac(x, size) - .5) ** 2 + (frac(y, size) - .5) ** 2 <= .25 else 0
+	return [[isInsideCircle(size, x, y) for x in range(size)] for y in range(size)]
+
 class Label:
 	def __init__(self, img, seed):
 		self.img = img
@@ -149,7 +156,7 @@ class Label:
 						break
 					for xx in range(kw):
 						# print y,yy,x,xx,oldimg.shape,h,kh,w,kw
-						if oldimg[y+yy][x+xx] == 0 or kernel[yy][xx] == 0:
+						if kernel[yy][xx] > 0 and oldimg[y+yy][x+xx] == 0:
 							yes = False
 							break
 				if yes:
@@ -243,7 +250,7 @@ if __name__ == "__main__":
            outer += img[seed_outer[1]+y][seed_outer[0]+x]
     outer /= 9
 
-    threshold = (outer*3 + inner) / 4
+    threshold = (outer + inner) / 2
     print(outer)
     print(inner)
     print(threshold)
@@ -263,7 +270,8 @@ if __name__ == "__main__":
     img8 = imread('16bitold.png')
     # region8 = imread('16bitnew.png')
 
-    opened = labelMatrix.opening(region, [[1]*3]*3)
+    opened = labelMatrix.opening(region, ballKernel(6))
+    # opened = labelMatrix.opening(opened, ballKernel(4))
     openedLabelMatrix = Label(opened, seed_inner)
     regionAfterOpening = openedLabelMatrix.getImg()
 
