@@ -254,7 +254,7 @@ if __name__ == "__main__":
            outer += img[seed_outer[1]+y][seed_outer[0]+x]
     outer /= 9
 
-    threshold = (outer + inner) / 2
+    threshold = (0 + inner) * 2 / 3
     print(outer)
     print(inner)
     print(threshold)

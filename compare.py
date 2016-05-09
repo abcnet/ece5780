@@ -107,7 +107,7 @@ class Label:
 					self.union(self.yx2i(y, x - 1), self.yx2i(y, x))
 				if y > 0 and self.img[y][x] == self.img[y-1][x]:
 					self.union(self.yx2i(y - 1, x), self.yx2i(y, x))
-		region = np.zeros(img.shape, dtype=np.uint8)
+		region = np.zeros(self.img.shape, dtype=np.uint8)
 		# print 'size of region ', region.shape
 		seedLabel = self.find(self.yx2i(self.seed[1], self.seed[0]))
 		for y in range(self.nrows):
@@ -269,7 +269,7 @@ for i in range(done):
 						# cv2.circle(segmentationtorgb, (x_avg, y_avg), 2, (255,255,0), -1)
 						# plt.imshow(segmentationtorgb)
 						# plt.show()
-						
+
 						print timeFrame, imgPath, segmentationPath
 						ds = dicom.read_file(imgPath)
 						dimg = np.array(ds.pixel_array)
@@ -279,4 +279,23 @@ for i in range(done):
 						if TURN_ON_MEDIAN_FILTER:
 							dimg = medianFilter(dimg, 2)
 
+						inner = 0
+						for x in (-1,0,1):
+							for y in (-1,0,1):
+								inner += dimg[y_avg][x_avg]
+						inner /= 9
+						threshold = inner * 2 / 3
+						h, w = dimg.shape
+						for x in range(w):
+							for y in range(h):
+								# print(x,y,dimg[y][x], threshold,  0 if dimg[y][x] < threshold else 65535)
+								dimg[y][x] = 0 if dimg[y][x] < threshold else 65535
+						labelMatrix = Label(dimg, (x_avg, y_avg))
+						region = labelMatrix.getImg()
+						opened = labelMatrix.opening(region, ballKernel(6))
+						openedLabelMatrix = Label(opened, (x_avg, y_avg))
+						regionAfterOpening = openedLabelMatrix.getImg()
+						regionAfterOpening2rgb =  cv2.cvtColor(regionAfterOpening,cv2.COLOR_GRAY2RGB)
+						plt.imshow(regionAfterOpening2rgb)
+						plt.show()
 # print saxList
