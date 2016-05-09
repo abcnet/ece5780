@@ -30,7 +30,7 @@ import numpy as np
 from segment import Dataset
 from scipy.misc import imsave, imread
 
-
+TURN_ON_MEDIAN_FILTER = False
 
 patients = [28, 30, 51, 100, 151, 177, 195, 198, 239, 244, 248, 254, 266, 272, 287, 332, 358, 395, 397, 398, 432, 434, 446, 457, 461]
 
@@ -177,8 +177,25 @@ class Label:
 		dilatedExpanded[kh-1:h-kh+1, kw-1:w-kw+1] = dilated
 		return dilatedExpanded
 
-
-
+def medianFilter(oldimg, kernelsize):
+	h, w = oldimg.shape
+	k = kernelsize
+	newimg = np.zeros((h-kernelsize+1, w-kernelsize+1), dtype=np.uint8)
+	for y in range(h-kernelsize+1):
+		for x in range(w-kernelsize+1):
+			l = [0]*kernelsize*kernelsize
+			for yy in range(kernelsize):
+				for xx in range(kernelsize):
+					l[yy*kernelsize+xx] = oldimg[y+yy][x+xx]
+			l.sort()
+			if kernelsize % 2 == 0:
+				newimg[y][x] = (l[k*k/2-1] + l[k*k/2]) / 2
+			else:
+				# print l
+				# print kernelsize, k, y, x, (k*k-1)/2, l[(k*k-1)/2]
+				# print newimg[y][x]
+				newimg[y][x] = l[(k*k-1)/2]
+	return newimg
 
 
 if __name__ == "__main__":
@@ -188,6 +205,8 @@ if __name__ == "__main__":
 
     img = np.array(ds.pixel_array)
     print img.shape
+    if TURN_ON_MEDIAN_FILTER:
+    	img = medianFilter(img, 2)
 
     # test thresholding
     
@@ -217,12 +236,7 @@ if __name__ == "__main__":
     labelMatrix = Label(img, seed_inner1)
     region = labelMatrix.getImg()
     # edge = labelMatrix.edgeDetect(region)
-    
-    # erosedMatrix = Label(erosed, )
-
-    # imsave('16bitnew.png', img)
-
-    # imsave('region.png', region)
+  
 
      
     img8 = imread('16bitold.png')
@@ -231,18 +245,7 @@ if __name__ == "__main__":
     opened = labelMatrix.opening(region, [[1]*3]*3)
     openedLabelMatrix = Label(opened, seed_inner1)
     regionAfterOpening = openedLabelMatrix.getImg()
-    # dilated = labelMatrix.dilation(erosed, [[1]*3]*3)
 
-
-    # plt.imshow(img)
-    # plt.show()
-
-    # colorimg = np.array([img,img,img], dtype=np.uint8)
-    # cv2.circle(colorimg,(91,139), 5, (255,255,0), -1)
-
-
-    # import matplotlib.pyplot as plt
-    # img8 = np.array(img, dtype=np.uint8)
 
     backtorgb = cv2.cvtColor(img8,cv2.COLOR_GRAY2RGB)
     regiontorgb = cv2.cvtColor(region,cv2.COLOR_GRAY2RGB)
@@ -250,20 +253,12 @@ if __name__ == "__main__":
     # erosed2rgb =  cv2.cvtColor(erosed,cv2.COLOR_GRAY2RGB)
     regionAfterOpening2rgb =  cv2.cvtColor(regionAfterOpening,cv2.COLOR_GRAY2RGB)
 
-
-
     cv2.circle(backtorgb,seed_inner1, 2, (255,255,0), -1)
     cv2.circle(backtorgb,seed_outer1, 1, (0,255,0), -1)
 
-    # cv2.circle(regiontorgb,seed_inner1, 2, (255,255,0), -1)
-    # cv2.circle(regiontorgb,seed_outer1, 1, (0,255,0), -1)
 
-    # cmap = plt.get_cmap('jet')
-
-    # rgba_img = cmap(img)
-    # rgb_img = np.delete(rgba_img, 3, 2)
-    plt.imshow(regiontorgb)
-    plt.show()
+    # plt.imshow(regiontorgb)
+    # plt.show()
     plt.imshow(regionAfterOpening2rgb)
     plt.show()
     imsave('old.png', backtorgb)
