@@ -11,10 +11,27 @@ saxList = [[] for _ in range(done)]
 
 for i in range(done):
 	patient = patients[i]
+	print 'Patient', patient
 	path = findPath + str(patient) + '/study/'
 	cmd = "ls -d " + path + 'sax_*'
 	saxList[i] = map(lambda x: int(x[x.find('_')+1:]), subprocess.check_output(cmd, shell=True).split())
 	saxList[i].sort()
-	saxList
+	# print saxList[i]
+	for sax in saxList[i]:
+		saxPath = path + 'sax_' + str(sax)
+		cmd = 'ls "' + saxPath + '"'
+		imgs = subprocess.check_output(cmd, shell=True).split()
+		# print imgs
+		for imgName in imgs:
+			imgPath = saxPath + '/' + imgName
+			# print imgPath
+			i1 = imgName.find('-00')
+			i2 = imgName.find('.dcm')
+			timeFrame = imgName[i1+3:i2]
+			# print timeFrame
+			if int(timeFrame) in es[i]:
+				print timeFrame, imgPath
+			if int(timeFrame) == 1:
+				print timeFrame, imgPath
 
-print saxList
+# print saxList
