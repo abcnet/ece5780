@@ -2,7 +2,40 @@ import subprocess
 import os
 import os.path
 
+import cv2
+import numpy as np
+import dicom
+import json
+import os
+import random
+import re
+import shutil
+import sys
 
+# from matplotlib import image # slow
+
+from scipy.ndimage import label
+from scipy.ndimage.morphology import binary_erosion
+from scipy.fftpack import fftn, ifftn
+from scipy.signal import argrelmin, correlate
+from scipy.spatial.distance import euclidean
+from scipy.stats import linregress
+from scipy.optimize import curve_fit
+from scipy.interpolate import UnivariateSpline
+
+
+
+import matplotlib.pyplot as plt # slow
+# import matplotlib.image as mpimg # slow
+
+import scipy
+# import pylab # slow
+import numpy as np
+from segment import Dataset
+from scipy.misc import imsave, imread
+
+
+import matplotlib.pyplot as plt # slow
 patients = [28, 30, 51, 100, 151, 177, 195, 198, 239, 244, 248, 254, 266, 272, 287, 332, 358, 395, 397, 398, 432, 434, 446, 457, 461]
 done = 9
 es = [[16, 17, 18], [10, 11, 12], [11, 12, 13], [13, 14, 15], [11, 12, 13], [13, 14, 15], [13, 14, 15], [10, 11, 12], [10, 11, 12]]
@@ -43,5 +76,10 @@ for i in range(done):
 				# print segmentationPath
 				if os.path.isfile(segmentationPath):
 					print timeFrame, imgPath, segmentationPath
+					segmentation = imread(segmentationPath)
+					# print segmentation
+					segmentationtorgb = cv2.cvtColor(np.array(segmentation, dtype=np.uint8),cv2.COLOR_GRAY2RGB)
+					plt.imshow(segmentationtorgb)
+					plt.show()
 
 # print saxList
