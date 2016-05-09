@@ -36,6 +36,9 @@ from scipy.misc import imsave, imread
 
 
 import matplotlib.pyplot as plt # slow
+
+TURN_ON_MEDIAN_FILTER = False
+
 patients = [28, 30, 51, 100, 151, 177, 195, 198, 239, 244, 248, 254, 266, 272, 287, 332, 358, 395, 397, 398, 432, 434, 446, 457, 461]
 done = 9
 es = [[16, 17, 18], [10, 11, 12], [11, 12, 13], [13, 14, 15], [11, 12, 13], [13, 14, 15], [13, 14, 15], [10, 11, 12], [10, 11, 12]]
@@ -244,25 +247,36 @@ for i in range(done):
 						continue
 					hasSegment = False
 					sh, sw = segmentation.shape
+					segmentSize = 0
+					xs = 0
+					ys = 0
 					# print type(segmentation[0][0])
 					for y in range(sh):
 						
 						for x in range(sw):
 							if segmentation[y][x]:
-								hasSegment = True
-								break
-						if hasSegment:
-							break
-					if hasSegment:
+								segmentSize += 1
+								xs += x
+								ys += y
+								
+					if segmentSize > 0:
+						x_avg = xs / segmentSize
+						y_avg = ys / segmentSize
 						# print x, y, segmentation[y][x]
 						# print segmentation
+						
 						# segmentationtorgb = cv2.cvtColor(np.array(segmentation, dtype=np.uint8),cv2.COLOR_GRAY2RGB)
+						# cv2.circle(segmentationtorgb, (x_avg, y_avg), 2, (255,255,0), -1)
 						# plt.imshow(segmentationtorgb)
 						# plt.show()
+						
 						print timeFrame, imgPath, segmentationPath
 						ds = dicom.read_file(imgPath)
 						dimg = np.array(ds.pixel_array)
-						dimgtorgb = cv2.cvtColor(np.array(dimg, dtype=np.uint8),cv2.COLOR_GRAY2RGB)
-						plt.imshow(dimgtorgb)
-						plt.show()
+						# dimgtorgb = cv2.cvtColor(np.array(dimg, dtype=np.uint8),cv2.COLOR_GRAY2RGB)
+						# plt.imshow(dimgtorgb)
+						# plt.show()
+						if TURN_ON_MEDIAN_FILTER:
+							dimg = medianFilter(dimg, 2)
+
 # print saxList
