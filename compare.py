@@ -25,7 +25,7 @@ from scipy.interpolate import UnivariateSpline
 
 
 
-import matplotlib.pyplot as plt # slow
+# import matplotlib.pyplot as plt # slow
 # import matplotlib.image as mpimg # slow
 
 import scipy
@@ -35,7 +35,7 @@ from segment import Dataset
 from scipy.misc import imsave, imread
 
 
-import matplotlib.pyplot as plt # slow
+# import matplotlib.pyplot as plt # slow
 
 TURN_ON_MEDIAN_FILTER = False
 
@@ -208,7 +208,10 @@ def medianFilter(oldimg, kernelsize):
 				# print newimg[y][x]
 				newimg[y][x] = l[(k*k-1)/2]
 	return newimg
-
+stats = open('stats.csv', 'w')
+header = 'Index,PatientNo,SaxSlice,TimeFrame,IsED,IsES,SegmentationSize,TP,TN,FP,FN'
+print header
+stats.write(header)
 for i in range(done):
 	patient = patients[i]
 	print 'Patient', patient
@@ -270,7 +273,7 @@ for i in range(done):
 						# plt.imshow(segmentationtorgb)
 						# plt.show()
 
-						print timeFrame, imgPath, segmentationPath
+						# print timeFrame, imgPath, segmentationPath
 						ds = dicom.read_file(imgPath)
 						dimg = np.array(ds.pixel_array)
 						# dimgtorgb = cv2.cvtColor(np.array(dimg, dtype=np.uint8),cv2.COLOR_GRAY2RGB)
@@ -295,7 +298,23 @@ for i in range(done):
 						opened = labelMatrix.opening(region, ballKernel(6))
 						openedLabelMatrix = Label(opened, (x_avg, y_avg))
 						regionAfterOpening = openedLabelMatrix.getImg()
-						regionAfterOpening2rgb =  cv2.cvtColor(regionAfterOpening,cv2.COLOR_GRAY2RGB)
-						plt.imshow(regionAfterOpening2rgb)
-						plt.show()
-# print saxList
+						
+						# regionAfterOpening2rgb =  cv2.cvtColor(regionAfterOpening,cv2.COLOR_GRAY2RGB)
+						# plt.imshow(regionAfterOpening2rgb)
+						# plt.show()
+						TP,TN,FP,FN = 0, 0, 0, 0
+						for x in range(w):
+							for y in range(h):
+								if regionAfterOpening[y][x] > 0:
+									if segmentation[y][x] > 0:
+										TP += 1
+									else:
+										FP += 1
+								else:
+									if segmentation[y][x] > 0:
+										FN += 1
+									else:
+										TN += 1
+						statsString = ','.join(map(str,[i,patient,sax,do,do==1,do>1,segmentSize,TP,TN,FP,FN]))
+						print statsString
+						stats.write(statsString)
