@@ -1,5 +1,7 @@
 import subprocess
 import os
+import os.path
+
 
 patients = [28, 30, 51, 100, 151, 177, 195, 198, 239, 244, 248, 254, 266, 272, 287, 332, 358, 395, 397, 398, 432, 434, 446, 457, 461]
 done = 9
@@ -28,10 +30,18 @@ for i in range(done):
 			i1 = imgName.find('-00')
 			i2 = imgName.find('.dcm')
 			timeFrame = imgName[i1+3:i2]
-			# print timeFrame
+			do = 0
 			if int(timeFrame) in es[i]:
-				print timeFrame, imgPath
+				do = int(timeFrame)
+				# print timeFrame, imgPath
+				
 			if int(timeFrame) == 1:
-				print timeFrame, imgPath
+				do = 1
+				# print timeFrame, imgPath
+			if do>0:
+				segmentationPath = 'tiftest/' + str(patient) + '/sax_' + str(sax) + '.1-single-' + str(do) + '.png'
+				# print segmentationPath
+				if os.path.isfile(segmentationPath):
+					print timeFrame, imgPath, segmentationPath
 
 # print saxList
