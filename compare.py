@@ -209,7 +209,7 @@ def medianFilter(oldimg, kernelsize):
 				newimg[y][x] = l[(k*k-1)/2]
 	return newimg
 stats = open('stats.csv', 'w')
-header = 'Index,PatientNo,SaxSlice,TimeFrame,IsED,IsES,SegmentationSize,TP,TN,FP,FN'
+header = 'Index,PatientNo,SaxSlice,TimeFrame,IsED,IsES,SegmentationSize,TP,TN,FP,FN\n'
 print header
 stats.write(header)
 os.system('mkdir output')
@@ -328,5 +328,5 @@ for i in range(done):
 										TN += 1
 						statsString = ','.join(map(str,[i,patient,sax,do,do==1,do>1,segmentSize,TP,TN,FP,FN]))
 						print statsString
-						stats.write(statsString)
+						stats.write(statsString + '\n')
 						imsave('output/' + str(patient) + '/sax-' + str(sax) + '/' + str(do) + '-stats.png', dimg8torgb)
