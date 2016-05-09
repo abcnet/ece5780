@@ -34,6 +34,10 @@ TURN_ON_MEDIAN_FILTER = False
 
 patients = [28, 30, 51, 100, 151, 177, 195, 198, 239, 244, 248, 254, 266, 272, 287, 332, 358, 395, 397, 398, 432, 434, 446, 457, 461]
 
+patientsInUse = [28, 30, 51, 100, 151, 177]
+slices = [[], [], [], [], [], []]
+es = [[16, 17, 18], []]
+
 
 path1 = '/Users/zr/Downloads/!ECE5780/!Kaggle/!Data/train/28/study/sax_5'
 
@@ -47,9 +51,9 @@ img2 = '/Users/zr/Downloads/!ECE5780/!Kaggle/!Data/train/177/study/sax_13/IM-115
 seed_inner2 = (132, 132)
 seed_outer2 = (130, 152)
 
-img = img1
-seed_inner = seed_inner1
-seed_outer = seed_outer1
+img = img2
+seed_inner = seed_inner2
+seed_outer = seed_outer2
 
 
 def ballKernel(size):
