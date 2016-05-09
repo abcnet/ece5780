@@ -46,6 +46,11 @@ es = [[16, 17, 18], [10, 11, 12], [11, 12, 13], [13, 14, 15], [11, 12, 13], [13,
 findPath = '../!Data/train/'
 saxList = [[] for _ in range(done)]
 
+EXTRA = False
+GIF = True
+delay = 10
+
+
 
 def ballKernel(size):
 	def frac(i, size):
@@ -208,10 +213,17 @@ def medianFilter(oldimg, kernelsize):
 				# print newimg[y][x]
 				newimg[y][x] = l[(k*k-1)/2]
 	return newimg
-stats = open('stats.csv', 'w')
-header = 'Index,PatientNo,SaxSlice,TimeFrame,IsED,IsES,SegmentationSize,TP,TN,FP,FN\n'
-print header
-stats.write(header)
+
+if EXTRA:
+	stats = open('extra.csv', 'w')
+	header = 'Index,PatientNo,SaxSlice,TimeFrame,IsED,IsES,PixelSpacingX,SliceThicknessY,SliceThickness\n'
+	print header
+	stats.write(header)
+else:
+	stats = open('stats.csv', 'w')
+	header = 'Index,PatientNo,SaxSlice,TimeFrame,IsED,IsES,SegmentationSize,TP,TN,FP,FN\n'
+	print header
+	stats.write(header)
 os.system('mkdir output')
 for i in range(done):
 	patient = patients[i]
@@ -228,12 +240,27 @@ for i in range(done):
 		imgs = subprocess.check_output(cmd, shell=True).split()
 		os.system('mkdir output/' + str(patient) + '/sax-' + str(sax))
 		# print imgs
+		if GIF:
+			imgsPathList = []
 		for imgName in imgs:
 			imgPath = saxPath + '/' + imgName
+
+
+
 			# print imgPath
 			i1 = imgName.find('-00')
 			i2 = imgName.find('.dcm')
 			timeFrame = imgName[i1+3:i2]
+
+
+			if GIF:
+				ds_3 = dicom.read_file(imgPath)
+				ds_3_array = np.array(ds_3.pixel_array)
+				fullImgPath = 'output/' + str(patient) + '/sax-' + str(sax) + '/' + timeFrame + '-raw.png'
+				imgsPathList.append(fullImgPath)
+				imsave(fullImgPath, ds_3_array)
+				continue
+
 			do = 0
 			if int(timeFrame) in es[i]:
 				do = int(timeFrame)
@@ -243,6 +270,16 @@ for i in range(done):
 				do = 1
 				# print timeFrame, imgPath
 			if do>0:
+				if EXTRA:
+					ds_2 = dicom.read_file(imgPath)
+					l = [i,patient,sax,do,do==1,do>1]
+					l.extend(ds_2.PixelSpacing)
+					l.append(ds_2.SliceThickness)
+					statsString = ','.join(map(str,l))
+					print statsString
+					stats.write(statsString + '\n')
+					continue
+
 				segmentationPath = 'tiftest/' + str(patient) + '/sax_' + str(sax) + '.1-single-' + str(do-1) + '.png'
 				# print segmentationPath
 				if os.path.isfile(segmentationPath):
@@ -277,7 +314,11 @@ for i in range(done):
 						# plt.show()
 
 						# print timeFrame, imgPath, segmentationPath
+						
+
+
 						ds = dicom.read_file(imgPath)
+						
 						dimg = np.array(ds.pixel_array)
 						imsave('output/' + str(patient) + '/sax-' + str(sax) + '/' + str(do) + '-raw.png', dimg)
 						dimg8 = imread('output/' + str(patient) + '/sax-' + str(sax) + '/' + str(do) + '-raw.png')
@@ -330,3 +371,8 @@ for i in range(done):
 						print statsString
 						stats.write(statsString + '\n')
 						imsave('output/' + str(patient) + '/sax-' + str(sax) + '/' + str(do) + '-stats.png', dimg8torgb)
+		print imgsPathList
+		animated = str(patient) + 'sax_' + str(sax) + '.gif'
+		cmd = 'convert -delay ' + str(delay) + ' -loop 0 ' + ' '.join(imgsPathList) + " " + animated
+		print cmd
+		print subprocess.check_output(cmd, shell=True)

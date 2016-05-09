@@ -221,10 +221,12 @@ def medianFilter(oldimg, kernelsize):
 
 if __name__ == "__main__":
     ds = dicom.read_file(img)
+    print ds
     # pylab.imshow(ds.pixel_array, cmap=pylab.cm.bone)
     # pylab.show()
 
     img = np.array(ds.pixel_array)
+
 
     print img.shape
 
