@@ -78,8 +78,23 @@ for i in range(done):
 					print timeFrame, imgPath, segmentationPath
 					segmentation = imread(segmentationPath)
 					# print segmentation
-					segmentationtorgb = cv2.cvtColor(np.array(segmentation, dtype=np.uint8),cv2.COLOR_GRAY2RGB)
-					plt.imshow(segmentationtorgb)
-					plt.show()
-
+					if isinstance(segmentation[0][0], np.bool_):
+						continue
+					hasSegment = False
+					sh, sw = segmentation.shape
+					print type(segmentation[0][0])
+					for y in range(sh):
+						
+						for x in range(sw):
+							if segmentation[y][x]:
+								hasSegment = True
+								break
+						if hasSegment:
+							break
+					if hasSegment:
+						print x, y, segmentation[y][x]
+						print segmentation
+						segmentationtorgb = cv2.cvtColor(np.array(segmentation, dtype=np.uint8),cv2.COLOR_GRAY2RGB)
+						plt.imshow(segmentationtorgb)
+						plt.show()
 # print saxList
