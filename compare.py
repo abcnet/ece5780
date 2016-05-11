@@ -47,7 +47,7 @@ findPath = '../!Data/train/'
 saxList = [[] for _ in range(done)]
 
 EXTRA = False
-GIF = True
+GIF = False
 delay = 10
 
 
@@ -216,12 +216,12 @@ def medianFilter(oldimg, kernelsize):
 
 if EXTRA:
 	stats = open('extra.csv', 'w')
-	header = 'Index,PatientNo,SaxSlice,TimeFrame,IsED,IsES,PixelSpacingX,SliceThicknessY,SliceThickness\n'
+	header = 'Index,PatientNo,SaxSlice,TimeFrame,IsED,IsES,PixelSpacingX,PixelSpacingY,SliceThickness,MagneticFieldStrength\n'
 	print header
 	stats.write(header)
 else:
 	stats = open('stats.csv', 'w')
-	header = 'Index,PatientNo,SaxSlice,TimeFrame,IsED,IsES,SegmentationSize,TP,TN,FP,FN\n'
+	header = 'Index,PatientNo,SaxSlice,TimeFrame,IsED,IsES,SegmentationSize,TP,TN,FP,FN,PixelSpacingX,PixelSpacingY,SliceThickness,MagneticFieldStrength\n'
 	print header
 	stats.write(header)
 os.system('mkdir output')
@@ -275,6 +275,7 @@ for i in range(done):
 					l = [i,patient,sax,do,do==1,do>1]
 					l.extend(ds_2.PixelSpacing)
 					l.append(ds_2.SliceThickness)
+					l.append(ds_2.MagneticFieldStrength)
 					statsString = ','.join(map(str,l))
 					print statsString
 					stats.write(statsString + '\n')
@@ -340,11 +341,15 @@ for i in range(done):
 							for y in range(h):
 								# print(x,y,dimg[y][x], threshold,  0 if dimg[y][x] < threshold else 65535)
 								target[y][x] = 0 if dimg[y][x] < threshold else 255
+						imsave('output/' + str(patient) + '/sax-' + str(sax) + '/' + str(do) + '-afterthresholding.png', target)
 						labelMatrix = Label(target, (x_avg, y_avg))
 						region = labelMatrix.getImg()
+						imsave('output/' + str(patient) + '/sax-' + str(sax) + '/' + str(do) + '-afterCCL1.png', region)
 						opened = labelMatrix.opening(region, ballKernel(6))
+						imsave('output/' + str(patient) + '/sax-' + str(sax) + '/' + str(do) + '-afteropeningbeforeccl2.png', opened)
 						openedLabelMatrix = Label(opened, (x_avg, y_avg))
 						regionAfterOpening = openedLabelMatrix.getImg()
+						imsave('output/' + str(patient) + '/sax-' + str(sax) + '/' + str(do) + '-afteropening.png', regionAfterOpening)
 
 						
 						# regionAfterOpening2rgb =  cv2.cvtColor(regionAfterOpening,cv2.COLOR_GRAY2RGB)
@@ -367,12 +372,18 @@ for i in range(done):
 										dimg8torgb[y][x] = 0, 255, 0
 									else:
 										TN += 1
-						statsString = ','.join(map(str,[i,patient,sax,do,do==1,do>1,segmentSize,TP,TN,FP,FN]))
+						l = [i,patient,sax,do,do==1,do>1,segmentSize,TP,TN,FP,FN]
+						l.extend(ds_2.PixelSpacing)
+						l.append(ds_2.SliceThickness)
+						l.append(ds_2.MagneticFieldStrength)
+						statsString = ','.join(map(str,l))
+						# statsString = ','.join(map(str,))
 						print statsString
 						stats.write(statsString + '\n')
 						imsave('output/' + str(patient) + '/sax-' + str(sax) + '/' + str(do) + '-stats.png', dimg8torgb)
-		print imgsPathList
-		animated = str(patient) + 'sax_' + str(sax) + '.gif'
-		cmd = 'convert -delay ' + str(delay) + ' -loop 0 ' + ' '.join(imgsPathList) + " " + animated
-		print cmd
-		print subprocess.check_output(cmd, shell=True)
+		if GIF:
+			print imgsPathList
+			animated = str(patient) + 'sax_' + str(sax) + '.gif'
+			cmd = 'convert -delay ' + str(delay) + ' -loop 0 ' + ' '.join(imgsPathList) + " " + animated
+			print cmd
+			print subprocess.check_output(cmd, shell=True)
